@@ -1,0 +1,112 @@
+name: Deploy Production
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: deploy-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+env:
+  DEPLOY_PATH: /var/www/invoicephp
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.5'
+          coverage: none
+          tools: composer:v2
+          extensions: ctype, iconv, mbstring, intl, xml, dom, pdo, pdo_pgsql
+
+      - name: Install dependencies
+        run: composer install --prefer-dist --no-interaction
+
+      - name: Run deployment integrity checks
+        run: composer ci:verify
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: verify
+    environment: production
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup SSH key
+        shell: bash
+        run: |
+          install -m 700 -d ~/.ssh
+          printf '%s\n' '${{ secrets.PROD_SSH_PRIVATE_KEY }}' > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          printf '%s\n' '${{ secrets.PROD_KNOWN_HOSTS }}' > ~/.ssh/known_hosts
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Define release paths
+        shell: bash
+        run: |
+          echo "RELEASE_DIR=${DEPLOY_PATH}/releases/${GITHUB_SHA}" >> "$GITHUB_ENV"
+          echo "CURRENT_DIR=${DEPLOY_PATH}/current" >> "$GITHUB_ENV"
+          echo "SHARED_DIR=${DEPLOY_PATH}/shared" >> "$GITHUB_ENV"
+
+      - name: Create directories on VPS
+        shell: bash
+        run: |
+          ssh -p '${{ secrets.PROD_SSH_PORT }}' '${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_HOST }}' \
+            "mkdir -p '${{ env.DEPLOY_PATH }}/releases' '${{ env.DEPLOY_PATH }}/shared'"
+
+      - name: Upload release files
+        shell: bash
+        run: |
+          rsync -az --delete \
+            --exclude='.git/' \
+            --exclude='.github/' \
+            --exclude='var/' \
+            --exclude='vendor/' \
+            --exclude='.env.local' \
+            --exclude='.env.*.local' \
+            ./ '${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_HOST }}:${RELEASE_DIR}/'
+
+      - name: Run release tasks on VPS
+        shell: bash
+        run: |
+          ssh -p '${{ secrets.PROD_SSH_PORT }}' '${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_HOST }}' << 'EOF'
+          set -euo pipefail
+          RELEASE_DIR='${{ env.RELEASE_DIR }}'
+          CURRENT_DIR='${{ env.CURRENT_DIR }}'
+          SHARED_DIR='${{ env.SHARED_DIR }}'
+
+          cd "$RELEASE_DIR"
+
+          if [ ! -f "$SHARED_DIR/.env.local" ]; then
+            echo "Missing shared .env.local at $SHARED_DIR/.env.local"
+            exit 1
+          fi
+
+          ln -sfn "$SHARED_DIR/.env.local" .env.local
+
+          composer install --no-dev --prefer-dist --no-interaction --optimize-autoloader --classmap-authoritative
+          php bin/console cache:clear --env=prod
+          php bin/console cache:warmup --env=prod
+          php bin/console doctrine:migrations:migrate --no-interaction --env=prod
+          php bin/console tailwind:build --minify --env=prod
+          php bin/console asset-map:compile --env=prod
+
+          ln -sfn "$RELEASE_DIR" "$CURRENT_DIR"
+
+          ls -1dt '${{ env.DEPLOY_PATH }}/releases'/* 2>/dev/null | tail -n +6 | xargs -r rm -rf
+          EOF

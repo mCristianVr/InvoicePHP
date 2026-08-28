@@ -1,0 +1,24 @@
+@import "tailwindcss";
+
+@import url("https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;700&family=Sora:wght@500;600;700&display=swap");
+
+@theme {
+    --font-sans: "Space Grotesk", "Segoe UI", sans-serif;
+    --font-display: "Sora", "Segoe UI", sans-serif;
+    --color-brand-ink: #0f172a;
+    --color-brand-accent: #14b8a6;
+    --color-brand-warm: #f59e0b;
+}
+
+@layer base {
+    html,
+    body {
+        min-height: 100%;
+    }
+
+    body {
+        margin: 0;
+        font-family: var(--font-sans);
+        color: var(--color-brand-ink);
+    }
+}
