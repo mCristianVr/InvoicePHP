@@ -73,13 +73,14 @@ jobs:
         shell: bash
         run: |
           rsync -az --delete \
+            -e "ssh -p '${{ secrets.PROD_SSH_PORT }}'" \
             --exclude='.git/' \
             --exclude='.github/' \
             --exclude='var/' \
             --exclude='vendor/' \
             --exclude='.env.local' \
             --exclude='.env.*.local' \
-            ./ '${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_HOST }}:${RELEASE_DIR}/'
+            ./ "${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_HOST }}:${RELEASE_DIR}/"
 
       - name: Run release tasks on VPS
         shell: bash
