@@ -67,7 +67,7 @@ jobs:
         shell: bash
         run: |
           ssh -p '${{ secrets.PROD_SSH_PORT }}' '${{ secrets.PROD_SSH_USER }}@${{ secrets.PROD_HOST }}' \
-            "mkdir -p '${{ env.DEPLOY_PATH }}/releases' '${{ env.DEPLOY_PATH }}/shared'"
+            "mkdir -p '${{ env.DEPLOY_PATH }}/releases' '${{ env.DEPLOY_PATH }}/shared/var/log' '${{ env.DEPLOY_PATH }}/shared/var/cache'"
 
       - name: Upload release files
         shell: bash
@@ -90,6 +90,9 @@ jobs:
           RELEASE_DIR='${{ env.RELEASE_DIR }}'
           CURRENT_DIR='${{ env.CURRENT_DIR }}'
           SHARED_DIR='${{ env.SHARED_DIR }}'
+
+          mkdir -p "$SHARED_DIR/var/log" "$SHARED_DIR/var/cache"
+          chmod -R 775 "$SHARED_DIR"
 
           cd "$RELEASE_DIR"
 
