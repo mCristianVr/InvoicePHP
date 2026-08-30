@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Login{% endblock %}
+
+{% block body %}
+<div class="flex min-h-screen items-center justify-center p-4 sm:p-6 lg:p-10">
+    <div class="w-full max-w-6xl overflow-hidden rounded-[32px] border border-emerald-100 bg-white/85 shadow-[0_32px_90px_rgba(6,78,59,0.18)] backdrop-blur-xl">
+        <div class="grid md:grid-cols-[1.05fr_0.95fr]">
+            {% include 'auth/_auth_promo.html.twig' %}
+
+            <div class="p-6 sm:p-8 lg:p-12">
+                <div class="mb-8 text-center md:text-left">
+                    <div class="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-emerald-500 to-teal-500 text-xl font-bold text-white shadow-lg shadow-emerald-500/25 md:mx-0">S</div>
+                    <h1 class="text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl">Iniciar sesión</h1>
+                    <p class="mt-2 text-sm text-slate-500">Accede a tu panel de facturación</p>
+                </div>
+
+                {% if error %}
+                    <div class="mb-6 rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm font-medium text-red-700 shadow-sm">
+                        {{ error.messageKey|trans(error.messageData, 'security') }}
+                    </div>
+                {% endif %}
+
+                <form method="post" class="space-y-5">
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold text-slate-700" for="username">Email</label>
+                        <input class="w-full rounded-2xl border border-emerald-100 bg-emerald-50/40 px-3.5 py-3.5 text-slate-900 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" type="email" id="username" name="_username" value="{{ last_username }}" placeholder="tu@email.com" required>
+                    </div>
+                    <div>
+                        <label class="mb-2 block text-sm font-semibold text-slate-700" for="password">Contraseña</label>
+                        <input class="w-full rounded-2xl border border-emerald-100 bg-emerald-50/40 px-3.5 py-3.5 text-slate-900 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100" type="password" id="password" name="_password" placeholder="••••••••" required>
+                    </div>
+                    <input type="hidden" name="_csrf_token" value="{{ csrf_token('authenticate') }}">
+                    <button class="w-full rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 px-4 py-3.5 font-semibold text-white shadow-[0_18px_35px_rgba(13,148,136,0.35)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_40px_rgba(13,148,136,0.4)] focus:outline-none focus:ring-4 focus:ring-emerald-200" type="submit">Entrar</button>
+                </form>
+
+                <p class="mt-7 text-center text-sm text-slate-600 md:text-left">
+                    ¿No tienes cuenta?
+                    <a class="font-semibold text-emerald-700 transition hover:text-emerald-800" href="{{ path('app_register') }}">Crear cuenta</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

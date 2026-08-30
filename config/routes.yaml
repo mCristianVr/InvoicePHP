@@ -9,3 +9,16 @@
 
 controllers:
     resource: routing.controllers
+
+app_login:
+    path: /login
+    controller: App\Controller\AuthController::login
+
+app_logout:
+    path: /logout
+    methods: [POST]
+    controller: App\Controller\AuthController::logout
+
+app_register:
+    path: /register
+    controller: App\Controller\AuthController::register
