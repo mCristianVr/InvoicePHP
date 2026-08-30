@@ -24,6 +24,14 @@ final class Invoice
     #[ORM\Column(type: Types::BIGINT)]
     public private(set) ?int $id = null;
 
+    #[ORM\ManyToOne(targetEntity: Customer::class, inversedBy: 'invoices')]
+    #[ORM\JoinColumn(name: 'customer_id', referencedColumnName: 'id', nullable: true)]
+    public private(set) ?Customer $customer = null;
+
+    #[ORM\ManyToOne(targetEntity: InvoiceSeries::class)]
+    #[ORM\JoinColumn(name: 'invoice_series_id', referencedColumnName: 'id', nullable: true)]
+    public private(set) ?InvoiceSeries $invoiceSeries = null;
+
     #[ORM\Column(name: 'invoice_number', type: Types::STRING, length: 50)]
     public private(set) string $invoiceNumber;
 
@@ -76,7 +84,7 @@ final class Invoice
     #[ORM\OrderBy(['changedAt' => 'ASC'])]
     public private(set) Collection $statusTransitions;
 
-    public function __construct(string $invoiceNumber, \DateTimeImmutable $issuedAt, string $currency = 'EUR')
+    public function __construct(string $invoiceNumber, \DateTimeImmutable $issuedAt, string $currency = 'EUR', ?Customer $customer = null, ?InvoiceSeries $invoiceSeries = null)
     {
         $this->invoiceNumber = trim($invoiceNumber);
         $this->issuedAt = $issuedAt;
@@ -86,6 +94,14 @@ final class Invoice
         $this->items = new ArrayCollection();
         $this->statusTransitions = new ArrayCollection();
 
+        if ($customer !== null) {
+            $this->customer = $customer;
+        }
+
+        if ($invoiceSeries !== null) {
+            $this->invoiceSeries = $invoiceSeries;
+        }
+
         if ($this->invoiceNumber === '') {
             throw new InvoiceDomainException('Invoice number cannot be empty.');
         }
@@ -93,6 +109,36 @@ final class Invoice
         if ($this->currency === '' || strlen($this->currency) !== 3) {
             throw new InvoiceDomainException('Currency must be a 3-letter ISO code.');
         }
+    }
+
+    public function assignCustomer(Customer $customer): void
+    {
+        $this->assertFinanciallyMutable();
+        $this->customer = $customer;
+        $this->touch();
+    }
+
+    public function assignSeries(InvoiceSeries $invoiceSeries): void
+    {
+        $this->assertFinanciallyMutable();
+        $this->invoiceSeries = $invoiceSeries;
+        $this->touch();
+    }
+
+    public function assignInvoiceNumber(string $invoiceNumber, ?\DateTimeImmutable $issuedAt = null): void
+    {
+        $this->assertFinanciallyMutable();
+        $invoiceNumber = trim($invoiceNumber);
+
+        if ($invoiceNumber === '') {
+            throw new InvoiceDomainException('Invoice number cannot be empty.');
+        }
+
+        $this->invoiceNumber = $invoiceNumber;
+        if ($issuedAt !== null) {
+            $this->issuedAt = $issuedAt;
+        }
+        $this->touch();
     }
 
     public function addItem(InvoiceItem $item): void
@@ -145,7 +191,7 @@ final class Invoice
         $this->touch();
     }
 
-    public function finalizeForChaining(string $previousHash, string $currentHash, \DateTimeImmutable $finalizedAt): void
+    public function finalizeForChaining(?string $previousHash = null, ?string $currentHash = null, ?\DateTimeImmutable $finalizedAt = null): void
     {
         if ($this->status !== InvoiceStatus::DRAFT) {
             throw new InvoiceDomainException('Only draft invoices can be finalized.');
@@ -155,8 +201,9 @@ final class Invoice
             throw new InvoiceDomainException('An invoice must contain at least one line item before finalization.');
         }
 
-        $this->previousInvoiceHash = $previousHash;
-        $this->currentInvoiceHash = $currentHash;
+        $finalizedAt ??= new \DateTimeImmutable();
+        $this->previousInvoiceHash = $previousHash ?? $this->previousInvoiceHash;
+        $this->currentInvoiceHash = $currentHash ?? $this->currentInvoiceHash;
         $this->finalizedAt = $finalizedAt;
 
         $this->registerRecipientStatus(InvoiceStatus::SENT, $finalizedAt, 'Invoice finalized and chained (VeriFactu).');
@@ -197,7 +244,8 @@ final class Invoice
 
     private function assertFinanciallyMutable(): void
     {
-        if ($this->finalizedAt !== null || $this->status === InvoiceStatus::PAID) {
+        // DB-level trigger backstop is a Sprint 2 responsibility; app-layer guard remains until then.
+        if ($this->finalizedAt !== null || $this->status === InvoiceStatus::PAID || $this->status === InvoiceStatus::SENT) {
             throw new InvoiceDomainException('Financial data is immutable after invoice has been SENT or PAID. Use a rectification document instead.');
         }
     }
