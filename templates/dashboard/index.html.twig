@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Dashboard{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-7xl p-8">
+    <div class="mb-6 flex items-center justify-between">
+        <h1 class="text-3xl font-bold">Dashboard</h1>
+        <form method="post" action="{{ path('app_logout') }}">
+            <button class="rounded bg-slate-900 px-4 py-2 text-white" type="submit">Cerrar sesión</button>
+        </form>
+    </div>
+
+    <div class="mb-8 grid gap-4 md:grid-cols-3">
+        <div class="rounded border p-4"><div class="text-sm text-slate-500">Draft</div><div class="text-2xl font-bold">{{ totals.draft_total|number_format(0, ',', '.') }} ct.</div></div>
+        <div class="rounded border p-4"><div class="text-sm text-slate-500">Sent</div><div class="text-2xl font-bold">{{ totals.sent_total|number_format(0, ',', '.') }} ct.</div></div>
+        <div class="rounded border p-4"><div class="text-sm text-slate-500">Paid</div><div class="text-2xl font-bold">{{ totals.paid_total|number_format(0, ',', '.') }} ct.</div></div>
+    </div>
+
+    <div class="mb-4 flex gap-2">
+        {% for status in statuses %}
+            <a class="rounded border px-3 py-2 {% if status == statusFilter %}bg-slate-900 text-white{% endif %}" href="{{ path('app_dashboard', {'status': status}) }}">{{ status }}</a>
+        {% endfor %}
+    </div>
+
+    <div class="overflow-x-auto rounded border bg-white">
+        <table class="min-w-full text-left text-sm">
+            <thead class="bg-slate-100">
+                <tr>
+                    <th class="px-4 py-2">Número</th>
+                    <th class="px-4 py-2">Fecha</th>
+                    <th class="px-4 py-2">Cliente</th>
+                    <th class="px-4 py-2">Estado</th>
+                    <th class="px-4 py-2">Total</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                    <tr class="border-t">
+                        <td class="px-4 py-2">{{ invoice.invoiceNumber }}</td>
+                        <td class="px-4 py-2">{{ invoice.issuedAt|date('d/m/Y') }}</td>
+                        <td class="px-4 py-2">{{ invoice.customer.name }}</td>
+                        <td class="px-4 py-2">{{ invoice.status.value }}</td>
+                        <td class="px-4 py-2">{{ invoice.grandTotalCents|number_format(0, ',', '.') }} ct.</td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td class="px-4 py-2" colspan="5">No hay facturas.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

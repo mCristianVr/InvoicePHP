@@ -32,4 +32,33 @@ final class InvoiceRepository extends ServiceEntityRepository
 
         return $row['hash'] ?? null;
     }
+
+    /** @return array{draft_total:int,sent_total:int,paid_total:int} */
+    public function dashboardTotals(): array
+    {
+        $rows = $this->createQueryBuilder('i')
+            ->select('i.status AS status', 'SUM(i.grandTotalCents) AS total')
+            ->groupBy('i.status')
+            ->getQuery()
+            ->getArrayResult();
+
+        $totals = [
+            'DRAFT' => 0,
+            'SENT' => 0,
+            'PAID' => 0,
+        ];
+
+        foreach ($rows as $row) {
+            $status = $row['status'];
+            if (isset($totals[$status])) {
+                $totals[$status] = (int) $row['total'];
+            }
+        }
+
+        return [
+            'draft_total' => $totals['DRAFT'],
+            'sent_total' => $totals['SENT'],
+            'paid_total' => $totals['PAID'],
+        ];
+    }
 }
