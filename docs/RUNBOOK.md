@@ -153,3 +153,31 @@ Keep at least 7-14 copies and test restore monthly.
 - Keep migrations backward-safe.
 - Deploy only from main after CI passes.
 - If deploy fails, capture failing step + first SQL/SSH error line before making changes.
+
+## 11. Application Logging and 500 Triage
+
+Log files written by the app:
+
+- Symfony default: `var/log/prod.log` (env-scoped).
+- Auth flow details: `var/log/auth.log`.
+- Unhandled exceptions and request failures: `var/log/app.log`.
+
+Tail logs in production:
+
+```bash
+cd /var/www/invoicephp/current
+tail -f var/log/prod.log var/log/auth.log var/log/app.log
+```
+
+When a user reports error 500:
+
+1. Reproduce once and copy the `X-Request-Id` response header from browser devtools.
+2. Filter logs by that request id:
+
+```bash
+cd /var/www/invoicephp/current
+grep -R "<REQUEST_ID>" var/log/prod.log var/log/auth.log var/log/app.log
+```
+
+3. For register/login issues, inspect `auth.log` first (missing fields, duplicate email, auth failures).
+4. For unexpected crashes, inspect `app.log` entry `Unhandled application exception.` and read `exception_class` + `exception_message`.

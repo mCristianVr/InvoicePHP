@@ -21,5 +21,9 @@ services:
 
     App\Service\InvoiceXml\InvoiceXmlGeneratorInterface: '@App\Service\InvoiceXml\NullInvoiceXmlGenerator'
 
+    App\Logging\RequestContextProcessor:
+        tags:
+            - { name: monolog.processor }
+
     # add more service definitions when explicit configuration is needed
     # please note that last definitions always *replace* previous ones

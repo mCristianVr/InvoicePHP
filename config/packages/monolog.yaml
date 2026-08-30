@@ -1,6 +1,8 @@
 monolog:
     channels:
         - deprecation # Deprecations are logged in the dedicated "deprecation" channel when it exists
+        - auth
+        - app
 
 when@dev:
     monolog:
@@ -10,6 +12,16 @@ when@dev:
                 path: "%kernel.logs_dir%/%kernel.environment%.log"
                 level: debug
                 channels: ["!event"]
+            app_file:
+                type: stream
+                path: "%kernel.logs_dir%/app.log"
+                level: info
+                channels: ["app"]
+            auth_file:
+                type: stream
+                path: "%kernel.logs_dir%/auth.log"
+                level: info
+                channels: ["auth"]
             console:
                 type: console
                 process_psr_3_messages: false
@@ -43,6 +55,18 @@ when@prod:
                 type: stream
                 path: php://stderr
                 level: debug
+                formatter: monolog.formatter.json
+            app_file:
+                type: stream
+                path: "%kernel.logs_dir%/app.log"
+                level: info
+                channels: ["app"]
+                formatter: monolog.formatter.json
+            auth_file:
+                type: stream
+                path: "%kernel.logs_dir%/auth.log"
+                level: info
+                channels: ["auth"]
                 formatter: monolog.formatter.json
             console:
                 type: console
