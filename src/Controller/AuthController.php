@@ -52,6 +52,8 @@ final class AuthController extends AbstractController
             return $this->redirectToRoute('app_dashboard');
         }
 
+        $errorMessage = null;
+
         if ($request->isMethod('POST')) {
             $email = trim((string) $request->request->get('email', ''));
             $password = (string) $request->request->get('password', '');
@@ -64,8 +66,11 @@ final class AuthController extends AbstractController
                 $this->authLogger->warning('Registration rejected because of missing fields.', [
                     'email' => strtolower($email),
                 ]);
-                $this->addFlash('error', 'Email and password are required.');
-                return $this->render('auth/register.html.twig');
+                $errorMessage = 'Email and password are required.';
+
+                return $this->render('auth/register.html.twig', [
+                    'error_message' => $errorMessage,
+                ]);
             }
 
             try {
@@ -77,18 +82,22 @@ final class AuthController extends AbstractController
                 $this->authLogger->notice('Registration rejected because email already exists.', [
                     'email' => strtolower($email),
                 ]);
-                $this->addFlash('error', 'This email is already registered. Try logging in.');
+                $errorMessage = 'This email is already registered. Try logging in.';
 
-                return $this->render('auth/register.html.twig');
+                return $this->render('auth/register.html.twig', [
+                    'error_message' => $errorMessage,
+                ]);
             } catch (\Throwable $exception) {
                 $this->authLogger->error('Registration failed with unexpected error.', [
                     'email' => strtolower($email),
                     'exception_class' => $exception::class,
                     'exception_message' => $exception->getMessage(),
                 ]);
-                $this->addFlash('error', 'We could not create your account right now. Please try again in a few minutes.');
+                $errorMessage = 'We could not create your account right now. Please try again in a few minutes.';
 
-                return $this->render('auth/register.html.twig');
+                return $this->render('auth/register.html.twig', [
+                    'error_message' => $errorMessage,
+                ]);
             }
 
             $this->authLogger->info('Registration succeeded.', [
@@ -100,7 +109,9 @@ final class AuthController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        return $this->render('auth/register.html.twig');
+        return $this->render('auth/register.html.twig', [
+            'error_message' => $errorMessage,
+        ]);
     }
 
     #[Route('/logout', name: 'app_logout', methods: ['POST'])]
