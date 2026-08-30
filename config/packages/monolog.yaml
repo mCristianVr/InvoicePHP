@@ -58,13 +58,13 @@ when@prod:
                 formatter: monolog.formatter.json
             app_file:
                 type: stream
-                path: "%kernel.logs_dir%/app.log"
+                path: "%env(resolve:APP_LOG_DIR)%/app.log"
                 level: info
                 channels: ["app"]
                 formatter: monolog.formatter.json
             auth_file:
                 type: stream
-                path: "%kernel.logs_dir%/auth.log"
+                path: "%env(resolve:APP_LOG_DIR)%/auth.log"
                 level: info
                 channels: ["auth"]
                 formatter: monolog.formatter.json
