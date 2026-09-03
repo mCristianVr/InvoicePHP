@@ -91,8 +91,7 @@ jobs:
           CURRENT_DIR='${{ env.CURRENT_DIR }}'
           SHARED_DIR='${{ env.SHARED_DIR }}'
 
-          mkdir -p "$SHARED_DIR/var/log" "$SHARED_DIR/var/cache"
-          chmod -R 775 "$SHARED_DIR"
+          install -d -m 775 "$SHARED_DIR" "$SHARED_DIR/var" "$SHARED_DIR/var/log" "$SHARED_DIR/var/cache"
 
           cd "$RELEASE_DIR"
 
