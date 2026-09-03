@@ -28,4 +28,14 @@ final class RuntimeIntegrityTest extends TestCase
 
         self::assertSame('>=8.5', $phpConstraint);
     }
+
+    public function testDefaultLogDirectoryUsesProjectVarPath(): void
+    {
+        $envFilePath = dirname(__DIR__, 2).'/.env';
+        $envContents = (string) file_get_contents($envFilePath);
+
+        preg_match('/^APP_LOG_DIR=(.+)$/m', $envContents, $matches);
+
+        self::assertSame('var/log', $matches[1] ?? null);
+    }
 }
