@@ -70,6 +70,23 @@ Important:
 - Repo .env is not the production source.
 - Never commit production secrets to git.
 
+Example production values:
+
+```env
+APP_ENV=prod
+APP_DEBUG=0
+APP_SECRET=replace_with_a_random_secret
+APP_LOG_DIR=/var/www/invoicephp/shared/var/log
+DATABASE_URL="postgresql://invoicephp_user:replace_password@127.0.0.1:5432/invoicephp_prod?serverVersion=16&charset=utf8"
+MAILER_DSN=null://null
+```
+
+Operational notes:
+
+- `APP_LOG_DIR` must be set in `/var/www/invoicephp/shared/.env.local`.
+- `APP_LOG_DIR` should point to a persistent shared path, not a release-local `var/log` directory.
+- Ensure `/var/www/invoicephp/shared/var/log` exists and is writable by the PHP-FPM runtime user.
+
 ## 5. Security Baseline (Practical)
 
 - SSH keys only. Disable password auth and root login.
@@ -158,15 +175,14 @@ Keep at least 7-14 copies and test restore monthly.
 
 Log files written by the app:
 
-- Symfony default: `var/log/prod.log` (env-scoped).
-- Auth flow details: `var/log/auth.log`.
-- Unhandled exceptions and request failures: `var/log/app.log`.
+- Symfony default runtime errors may also be emitted to stderr, depending on the PHP-FPM/Nginx/systemd setup.
+- Auth flow details: `/var/www/invoicephp/shared/var/log/auth.log`.
+- Unhandled exceptions and request failures: `/var/www/invoicephp/shared/var/log/app.log`.
 
 Tail logs in production:
 
 ```bash
-cd /var/www/invoicephp/current
-tail -f var/log/prod.log var/log/auth.log var/log/app.log
+tail -f /var/www/invoicephp/shared/var/log/auth.log /var/www/invoicephp/shared/var/log/app.log
 ```
 
 When a user reports error 500:
@@ -175,9 +191,8 @@ When a user reports error 500:
 2. Filter logs by that request id:
 
 ```bash
-cd /var/www/invoicephp/current
-grep -R "<REQUEST_ID>" var/log/prod.log var/log/auth.log var/log/app.log
+grep -R "<REQUEST_ID>" /var/www/invoicephp/shared/var/log/auth.log /var/www/invoicephp/shared/var/log/app.log
 ```
 
-3. For register/login issues, inspect `auth.log` first (missing fields, duplicate email, auth failures).
+3. For register/login issues, inspect auth.log first for missing fields, duplicate email, or authentication failures.
 4. For unexpected crashes, inspect `app.log` entry `Unhandled application exception.` and read `exception_class` + `exception_message`.
