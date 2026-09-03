@@ -23,7 +23,7 @@ jobs:
           extensions: ctype, iconv, mbstring, intl, xml, dom, pdo, pdo_pgsql
 
       - name: Install dependencies
-        run: composer install --prefer-dist --no-interaction
+        run: composer install --prefer-dist --no-interaction --no-scripts
 
       - name: Verify stack integrity
         run: composer ci:verify
