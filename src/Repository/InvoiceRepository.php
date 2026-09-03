@@ -61,4 +61,38 @@ final class InvoiceRepository extends ServiceEntityRepository
             'paid_total' => $totals['PAID'],
         ];
     }
+
+    /** @return array{ALL:int,DRAFT:int,SENT:int,PAID:int,OVERDUE:int,REJECTED:int} */
+    public function dashboardStatusCounts(): array
+    {
+        $rows = $this->createQueryBuilder('i')
+            ->select('i.status AS status', 'COUNT(i.id) AS total')
+            ->groupBy('i.status')
+            ->getQuery()
+            ->getArrayResult();
+
+        $counts = [
+            'DRAFT' => 0,
+            'SENT' => 0,
+            'PAID' => 0,
+            'OVERDUE' => 0,
+            'REJECTED' => 0,
+        ];
+
+        foreach ($rows as $row) {
+            $status = $row['status'];
+            if (isset($counts[$status])) {
+                $counts[$status] = (int) $row['total'];
+            }
+        }
+
+        return [
+            'ALL' => array_sum($counts),
+            'DRAFT' => $counts['DRAFT'],
+            'SENT' => $counts['SENT'],
+            'PAID' => $counts['PAID'],
+            'OVERDUE' => $counts['OVERDUE'],
+            'REJECTED' => $counts['REJECTED'],
+        ];
+    }
 }

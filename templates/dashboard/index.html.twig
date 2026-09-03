@@ -3,29 +3,88 @@
 {% block title %}Dashboard{% endblock %}
 
 {% block body %}
-<div class="mx-auto max-w-7xl p-8">
-    <div class="mb-6 flex items-center justify-between">
-        <h1 class="text-3xl font-bold">Dashboard</h1>
+{% set statusLabels = {
+    'ALL': 'Todas',
+    'DRAFT': 'Borrador',
+    'SENT': 'Enviada',
+    'PAID': 'Pagada',
+    'OVERDUE': 'Vencida',
+    'REJECTED': 'Rechazada'
+} %}
+
+{% set statusBadgeClasses = {
+    'DRAFT': 'bg-slate-100 text-slate-700',
+    'SENT': 'bg-sky-100 text-sky-800',
+    'PAID': 'bg-emerald-100 text-emerald-800',
+    'OVERDUE': 'bg-amber-100 text-amber-900',
+    'REJECTED': 'bg-rose-100 text-rose-900'
+} %}
+
+<div class="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+    <div class="mb-8 flex flex-wrap items-start justify-between gap-4">
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.12em] text-teal-700">Panel de facturas</p>
+            <h1 class="mt-1 text-3xl font-bold text-slate-900">Bienvenido, {{ app.user.userIdentifier }}</h1>
+            <p class="mt-1 text-sm text-slate-600">Consulta importes, revisa estados y prioriza la siguiente accion.</p>
+        </div>
         <form method="post" action="{{ path('app_logout') }}">
-            <button class="rounded bg-slate-900 px-4 py-2 text-white" type="submit">Cerrar sesión</button>
+            <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
+            <button class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-800 shadow-sm transition hover:bg-slate-50" type="submit">Cerrar sesion</button>
         </form>
     </div>
 
     <div class="mb-8 grid gap-4 md:grid-cols-3">
-        <div class="rounded border p-4"><div class="text-sm text-slate-500">Draft</div><div class="text-2xl font-bold">{{ totals.draft_total|number_format(0, ',', '.') }} ct.</div></div>
-        <div class="rounded border p-4"><div class="text-sm text-slate-500">Sent</div><div class="text-2xl font-bold">{{ totals.sent_total|number_format(0, ',', '.') }} ct.</div></div>
-        <div class="rounded border p-4"><div class="text-sm text-slate-500">Paid</div><div class="text-2xl font-bold">{{ totals.paid_total|number_format(0, ',', '.') }} ct.</div></div>
+        <article class="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Borrador</p>
+            <p class="mt-2 text-2xl font-bold text-slate-900">{{ (totals.draft_total / 100)|number_format(2, ',', '.') }} EUR</p>
+            <p class="mt-1 text-xs text-slate-500">{{ statusCounts.DRAFT|default(0) }} facturas</p>
+        </article>
+        <article class="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Enviada</p>
+            <p class="mt-2 text-2xl font-bold text-slate-900">{{ (totals.sent_total / 100)|number_format(2, ',', '.') }} EUR</p>
+            <p class="mt-1 text-xs text-slate-500">{{ statusCounts.SENT|default(0) }} facturas</p>
+        </article>
+        <article class="rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+            <p class="text-xs font-semibold uppercase tracking-wide text-slate-500">Pagada</p>
+            <p class="mt-2 text-2xl font-bold text-slate-900">{{ (totals.paid_total / 100)|number_format(2, ',', '.') }} EUR</p>
+            <p class="mt-1 text-xs text-slate-500">{{ statusCounts.PAID|default(0) }} facturas</p>
+        </article>
     </div>
 
-    <div class="mb-4 flex gap-2">
-        {% for status in statuses %}
-            <a class="rounded border px-3 py-2 {% if status == statusFilter %}bg-slate-900 text-white{% endif %}" href="{{ path('app_dashboard', {'status': status}) }}">{{ status }}</a>
-        {% endfor %}
+    <div class="mb-6 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+        <div class="mb-4 flex flex-wrap items-center justify-between gap-3">
+            <p class="text-sm text-slate-700">
+                <span class="font-semibold">Vista actual:</span>
+                {{ statusLabels[statusFilter]|default(statusFilter) }}
+            </p>
+            <p class="text-sm text-slate-600">{{ invoices|length }} resultados en pantalla</p>
+        </div>
+        <div class="flex flex-wrap gap-2">
+            {% for status in statuses %}
+                {% set isActive = status == statusFilter %}
+                <a
+                    class="inline-flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-medium transition {% if isActive %}border-slate-900 bg-slate-900 text-white{% else %}border-slate-300 bg-white text-slate-700 hover:bg-slate-50{% endif %}"
+                    href="{{ path('app_dashboard', {'status': status}) }}"
+                >
+                    <span>{{ statusLabels[status]|default(status) }}</span>
+                    <span class="rounded-full px-2 py-0.5 text-xs {% if isActive %}bg-white/20 text-white{% else %}bg-slate-100 text-slate-700{% endif %}">{{ statusCounts[status]|default(0) }}</span>
+                </a>
+            {% endfor %}
+        </div>
     </div>
 
-    <div class="overflow-x-auto rounded border bg-white">
+    <div class="mb-6 rounded-2xl border border-teal-100 bg-teal-50/70 p-4">
+        <p class="text-sm font-semibold text-teal-900">Siguiente paso recomendado</p>
+        <div class="mt-2 flex flex-wrap gap-2 text-sm">
+            <a class="rounded-lg bg-white px-3 py-2 font-medium text-teal-800 shadow-sm ring-1 ring-teal-200 hover:bg-teal-50" href="{{ path('app_dashboard', {'status': 'DRAFT'}) }}">Revisar borradores</a>
+            <a class="rounded-lg bg-white px-3 py-2 font-medium text-teal-800 shadow-sm ring-1 ring-teal-200 hover:bg-teal-50" href="{{ path('app_dashboard', {'status': 'OVERDUE'}) }}">Comprobar vencidas</a>
+            <a class="rounded-lg bg-white px-3 py-2 font-medium text-teal-800 shadow-sm ring-1 ring-teal-200 hover:bg-teal-50" href="{{ path('app_dashboard') }}">Ver todas</a>
+        </div>
+    </div>
+
+    <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white/95 shadow-sm">
         <table class="min-w-full text-left text-sm">
-            <thead class="bg-slate-100">
+            <thead class="bg-slate-100/80">
                 <tr>
                     <th class="px-4 py-2">Número</th>
                     <th class="px-4 py-2">Fecha</th>
@@ -39,13 +98,31 @@
                     <tr class="border-t">
                         <td class="px-4 py-2">{{ invoice.invoiceNumber }}</td>
                         <td class="px-4 py-2">{{ invoice.issuedAt|date('d/m/Y') }}</td>
-                        <td class="px-4 py-2">{{ invoice.customer.name }}</td>
-                        <td class="px-4 py-2">{{ invoice.status.value }}</td>
-                        <td class="px-4 py-2">{{ invoice.grandTotalCents|number_format(0, ',', '.') }} ct.</td>
+                        <td class="px-4 py-2">{{ invoice.customer ? invoice.customer.name : 'Sin cliente' }}</td>
+                        <td class="px-4 py-2">
+                            <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold {{ statusBadgeClasses[invoice.status.value]|default('bg-slate-100 text-slate-700') }}">
+                                {{ statusLabels[invoice.status.value]|default(invoice.status.value) }}
+                            </span>
+                        </td>
+                        <td class="px-4 py-2 font-semibold text-slate-900">{{ (invoice.grandTotalCents / 100)|number_format(2, ',', '.') }} EUR</td>
                     </tr>
                 {% else %}
                     <tr>
-                        <td class="px-4 py-2" colspan="5">No hay facturas.</td>
+                        <td class="px-4 py-10" colspan="5">
+                            <div class="text-center">
+                                <p class="text-base font-semibold text-slate-800">
+                                    {% if statusFilter == 'ALL' %}
+                                        Todavia no hay facturas registradas.
+                                    {% else %}
+                                        No hay facturas en estado {{ statusLabels[statusFilter]|default(statusFilter)|lower }}.
+                                    {% endif %}
+                                </p>
+                                <p class="mt-1 text-sm text-slate-500">Usa los filtros para revisar otro estado y confirmar si hay trabajo pendiente.</p>
+                                {% if statusFilter != 'ALL' %}
+                                    <a class="mt-3 inline-flex rounded-lg bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-800" href="{{ path('app_dashboard') }}">Volver a todas</a>
+                                {% endif %}
+                            </div>
+                        </td>
                     </tr>
                 {% endfor %}
             </tbody>

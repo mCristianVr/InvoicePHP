@@ -25,12 +25,14 @@ final class DashboardController extends AbstractController
         );
 
         $totals = $invoiceRepository->dashboardTotals();
+        $statusCounts = $invoiceRepository->dashboardStatusCounts();
 
         return $this->render('dashboard/index.html.twig', [
             'invoices' => $invoices,
             'statusFilter' => $statusFilter,
             'statuses' => $statuses,
             'totals' => $totals,
+            'statusCounts' => $statusCounts,
         ]);
     }
 }
