@@ -70,9 +70,9 @@ final class AuthController extends AbstractController
 
                 return $this->render('auth/register.html.twig', [
                     'error_message' => $errorMessage,
-                ]);
+                ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
             }
-
+            
             try {
                 $user = new User($email, '');
                 $user->setPassword($hasher->hashPassword($user, $password));
@@ -86,7 +86,7 @@ final class AuthController extends AbstractController
 
                 return $this->render('auth/register.html.twig', [
                     'error_message' => $errorMessage,
-                ]);
+                ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
             } catch (\Throwable $exception) {
                 $this->authLogger->error('Registration failed with unexpected error.', [
                     'email' => strtolower($email),
@@ -97,7 +97,7 @@ final class AuthController extends AbstractController
 
                 return $this->render('auth/register.html.twig', [
                     'error_message' => $errorMessage,
-                ]);
+                ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
             }
 
             $this->authLogger->info('Registration succeeded.', [
