@@ -28,6 +28,7 @@ security:
     access_control:
         - { path: ^/login, roles: PUBLIC_ACCESS }
         - { path: ^/register, roles: PUBLIC_ACCESS }
+        - { path: ^/logs, roles: ROLE_ADMIN }
         - { path: ^/, roles: ROLE_USER }
 
 when@test:
