@@ -22,3 +22,7 @@ app_logout:
 app_register:
     path: /register
     controller: App\Controller\AuthController::register
+
+app_admin_users:
+    path: /admin/users
+    controller: App\Controller\AdminUsersController

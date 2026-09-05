@@ -14,6 +14,10 @@ use Symfony\Component\Security\Core\User\UserInterface;
 #[ORM\UniqueConstraint(name: 'uniq_user_email', columns: ['email'])]
 final class User implements UserInterface, PasswordAuthenticatedUserInterface
 {
+    private const MANAGEABLE_ROLES = [
+        'ROLE_ADMIN',
+    ];
+
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column(type: Types::BIGINT)]
@@ -49,6 +53,29 @@ final class User implements UserInterface, PasswordAuthenticatedUserInterface
         $roles[] = 'ROLE_USER';
 
         return array_values(array_unique($roles));
+    }
+
+    /** @return list<string> */
+    public static function manageableRoles(): array
+    {
+        return self::MANAGEABLE_ROLES;
+    }
+
+    /** @param list<string> $roles */
+    public function replaceManageableRoles(array $roles): void
+    {
+        $sanitized = [];
+
+        foreach ($roles as $role) {
+            $candidate = strtoupper(trim($role));
+            if ($candidate === '' || !in_array($candidate, self::MANAGEABLE_ROLES, true)) {
+                continue;
+            }
+
+            $sanitized[] = $candidate;
+        }
+
+        $this->roles = array_values(array_unique($sanitized));
     }
 
     public function setPassword(string $password): void

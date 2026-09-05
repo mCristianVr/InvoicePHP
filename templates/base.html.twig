@@ -34,6 +34,7 @@
                             <a class="rounded-lg px-3 py-2 text-sm font-medium transition {% if currentRoute == 'app_home' %}bg-emerald-100 text-emerald-900{% else %}text-slate-700 hover:bg-emerald-50 hover:text-emerald-800{% endif %}" href="{{ path('app_home') }}">Inicio</a>
                             <a class="rounded-lg px-3 py-2 text-sm font-medium transition {% if currentRoute == 'app_dashboard' %}bg-emerald-100 text-emerald-900{% else %}text-slate-700 hover:bg-emerald-50 hover:text-emerald-800{% endif %}" href="{{ path('app_dashboard') }}">Facturas</a>
                             {% if is_granted('ROLE_ADMIN') %}
+                                <a class="rounded-lg px-3 py-2 text-sm font-medium transition {% if currentRoute == 'app_admin_users' %}bg-emerald-100 text-emerald-900{% else %}text-slate-700 hover:bg-emerald-50 hover:text-emerald-800{% endif %}" href="{{ path('app_admin_users') }}">Usuarios</a>
                                 <a class="rounded-lg px-3 py-2 text-sm font-medium transition {% if currentRoute == 'app_logs' %}bg-emerald-100 text-emerald-900{% else %}text-slate-700 hover:bg-emerald-50 hover:text-emerald-800{% endif %}" href="{{ path('app_logs') }}">Logs</a>
                             {% endif %}
                         </div>
@@ -50,6 +51,7 @@
                             <a class="rounded-lg px-3 py-2 text-sm font-medium transition {% if currentRoute == 'app_home' %}bg-emerald-100 text-emerald-900{% else %}bg-white text-slate-700 ring-1 ring-slate-200{% endif %}" href="{{ path('app_home') }}">Inicio</a>
                             <a class="rounded-lg px-3 py-2 text-sm font-medium transition {% if currentRoute == 'app_dashboard' %}bg-emerald-100 text-emerald-900{% else %}bg-white text-slate-700 ring-1 ring-slate-200{% endif %}" href="{{ path('app_dashboard') }}">Facturas</a>
                             {% if is_granted('ROLE_ADMIN') %}
+                                <a class="rounded-lg px-3 py-2 text-sm font-medium transition {% if currentRoute == 'app_admin_users' %}bg-emerald-100 text-emerald-900{% else %}bg-white text-slate-700 ring-1 ring-slate-200{% endif %}" href="{{ path('app_admin_users') }}">Usuarios</a>
                                 <a class="rounded-lg px-3 py-2 text-sm font-medium transition {% if currentRoute == 'app_logs' %}bg-emerald-100 text-emerald-900{% else %}bg-white text-slate-700 ring-1 ring-slate-200{% endif %}" href="{{ path('app_logs') }}">Logs</a>
                             {% endif %}
                             <form method="post" action="{{ path('app_logout') }}" class="ml-auto">

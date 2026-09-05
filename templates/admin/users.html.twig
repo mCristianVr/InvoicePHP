@@ -1,0 +1,67 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Usuarios{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+    <div class="mb-6">
+        <p class="text-xs font-semibold uppercase tracking-[0.12em] text-teal-700">Administracion</p>
+        <h1 class="mt-1 text-3xl font-bold text-slate-900">Gestion de usuarios</h1>
+        <p class="mt-1 text-sm text-slate-600">Asigna permisos del sistema de forma controlada.</p>
+    </div>
+
+    {% for message in app.flashes('success') %}
+        <div class="mb-3 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-700">{{ message }}</div>
+    {% endfor %}
+
+    {% for message in app.flashes('error') %}
+        <div class="mb-3 rounded-xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">{{ message }}</div>
+    {% endfor %}
+
+    <div class="overflow-x-auto rounded-2xl border border-slate-200 bg-white/95 shadow-sm">
+        <table class="min-w-full text-left text-sm">
+            <thead class="bg-slate-100/80">
+                <tr>
+                    <th class="px-4 py-3">Usuario</th>
+                    <th class="px-4 py-3">Permisos actuales</th>
+                    <th class="px-4 py-3">Editar permisos</th>
+                    <th class="px-4 py-3">Accion</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for user in users %}
+                    <tr class="border-t border-slate-200 align-top">
+                        <td class="px-4 py-3 font-semibold text-slate-900">{{ user.userIdentifier }}</td>
+                        <td class="px-4 py-3">
+                            <div class="flex flex-wrap gap-2">
+                                {% for role in user.roles %}
+                                    <span class="rounded-full bg-slate-100 px-2.5 py-1 text-xs font-medium text-slate-700">{{ role }}</span>
+                                {% endfor %}
+                            </div>
+                        </td>
+                        <td class="px-4 py-3">
+                            <form method="post" class="space-y-2">
+                                <input type="hidden" name="user_id" value="{{ user.id }}">
+                                <input type="hidden" name="_csrf_token" value="{{ csrf_token('manage_roles_' ~ user.id) }}">
+                                {% for role in manageableRoles %}
+                                    <label class="flex items-center gap-2 text-sm text-slate-700">
+                                        <input type="checkbox" name="roles[]" value="{{ role }}" {% if role in user.roles %}checked{% endif %} class="h-4 w-4 rounded border-slate-300 text-emerald-600 focus:ring-emerald-500">
+                                        <span>{{ role }}</span>
+                                    </label>
+                                {% endfor %}
+                        </td>
+                        <td class="px-4 py-3">
+                                <button class="rounded-lg bg-slate-900 px-3 py-2 text-sm font-semibold text-white hover:bg-slate-800" type="submit">Guardar</button>
+                            </form>
+                        </td>
+                    </tr>
+                {% else %}
+                    <tr>
+                        <td colspan="4" class="px-4 py-8 text-center text-sm text-slate-500">No hay usuarios registrados.</td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}
