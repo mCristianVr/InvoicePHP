@@ -33,6 +33,7 @@
                         <div class="hidden items-center gap-2 sm:flex">
                             <a class="rounded-lg px-3 py-2 text-sm font-medium transition {% if currentRoute == 'app_home' %}bg-emerald-100 text-emerald-900{% else %}text-slate-700 hover:bg-emerald-50 hover:text-emerald-800{% endif %}" href="{{ path('app_home') }}">Inicio</a>
                             <a class="rounded-lg px-3 py-2 text-sm font-medium transition {% if currentRoute == 'app_dashboard' %}bg-emerald-100 text-emerald-900{% else %}text-slate-700 hover:bg-emerald-50 hover:text-emerald-800{% endif %}" href="{{ path('app_dashboard') }}">Facturas</a>
+                            <a class="rounded-lg px-3 py-2 text-sm font-medium transition {% if currentRoute == 'app_logs' %}bg-emerald-100 text-emerald-900{% else %}text-slate-700 hover:bg-emerald-50 hover:text-emerald-800{% endif %}" href="{{ path('app_logs') }}">Logs</a>
                         </div>
 
                         <div class="hidden items-center gap-2 sm:flex">
@@ -46,6 +47,7 @@
                         <div class="flex w-full items-center gap-2 sm:hidden">
                             <a class="rounded-lg px-3 py-2 text-sm font-medium transition {% if currentRoute == 'app_home' %}bg-emerald-100 text-emerald-900{% else %}bg-white text-slate-700 ring-1 ring-slate-200{% endif %}" href="{{ path('app_home') }}">Inicio</a>
                             <a class="rounded-lg px-3 py-2 text-sm font-medium transition {% if currentRoute == 'app_dashboard' %}bg-emerald-100 text-emerald-900{% else %}bg-white text-slate-700 ring-1 ring-slate-200{% endif %}" href="{{ path('app_dashboard') }}">Facturas</a>
+                            <a class="rounded-lg px-3 py-2 text-sm font-medium transition {% if currentRoute == 'app_logs' %}bg-emerald-100 text-emerald-900{% else %}bg-white text-slate-700 ring-1 ring-slate-200{% endif %}" href="{{ path('app_logs') }}">Logs</a>
                             <form method="post" action="{{ path('app_logout') }}" class="ml-auto">
                                 <input type="hidden" name="_csrf_token" value="{{ csrf_token('logout') }}">
                                 <button class="rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm font-semibold text-slate-800" type="submit">Salir</button>

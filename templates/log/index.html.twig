@@ -1,0 +1,64 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Logs{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
+    <div class="mb-6">
+        <p class="text-xs font-semibold uppercase tracking-[0.12em] text-teal-700">Operaciones</p>
+        <h1 class="mt-1 text-3xl font-bold text-slate-900">Visor de logs</h1>
+        <p class="mt-1 text-sm text-slate-600">Revisa incidencias recientes sin entrar al servidor. Directorio activo: {{ logDir }}</p>
+    </div>
+
+    <div class="mb-6 rounded-2xl border border-slate-200 bg-white/90 p-4 shadow-sm">
+        <form method="get" class="grid gap-4 md:grid-cols-[1fr_auto_auto] md:items-end">
+            <div>
+                <label class="mb-2 block text-sm font-semibold text-slate-700" for="file">Archivo</label>
+                <select id="file" name="file" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900">
+                    {% for file in files %}
+                        <option value="{{ file }}" {% if file == selectedFile %}selected{% endif %}>{{ file }}</option>
+                    {% else %}
+                        <option value="">No hay archivos</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div>
+                <label class="mb-2 block text-sm font-semibold text-slate-700" for="lines">Lineas</label>
+                <select id="lines" name="lines" class="w-full rounded-xl border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900">
+                    {% for option in lineOptions %}
+                        <option value="{{ option }}" {% if option == selectedLines %}selected{% endif %}>{{ option }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <button class="rounded-xl bg-slate-900 px-4 py-2 text-sm font-semibold text-white hover:bg-slate-800" type="submit">Actualizar</button>
+        </form>
+    </div>
+
+    {% if errorMessage %}
+        <div class="mb-6 rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm font-medium text-rose-700">
+            {{ errorMessage }}
+        </div>
+    {% endif %}
+
+    <div class="overflow-hidden rounded-2xl border border-slate-200 bg-slate-950 shadow-sm">
+        <div class="flex items-center justify-between border-b border-slate-800 px-4 py-3">
+            <p class="text-sm font-semibold text-slate-100">{{ selectedFile ?: 'Sin archivo' }}</p>
+            <p class="text-xs text-slate-300">Mostrando ultimas {{ selectedLines }} lineas</p>
+        </div>
+        <div class="max-h-[65vh] overflow-auto">
+            {% if logLines is not empty %}
+                <ol class="font-mono text-[12px] leading-6 text-slate-100">
+                    {% for line in logLines %}
+                        <li class="grid grid-cols-[3.5rem_1fr] gap-3 border-b border-slate-800/70 px-4 py-1.5 even:bg-slate-900/40">
+                            <span class="select-none text-right text-slate-500">{{ loop.index }}</span>
+                            <code class="whitespace-pre">{{ line }}</code>
+                        </li>
+                    {% endfor %}
+                </ol>
+            {% else %}
+                <p class="p-4 text-sm text-slate-300">No hay contenido para mostrar.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}
