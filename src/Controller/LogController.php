@@ -42,12 +42,14 @@ final class LogController extends AbstractController
 
         $errorMessage = null;
         $logLines = [];
+        $logStats = $this->emptyLogStats();
 
         if ($selectedFile !== '') {
             $path = $files[$selectedFile];
 
             try {
                 $logLines = $this->tailFileLines($path, $selectedLines);
+                $logStats = $this->summarizeLogLevels($logLines);
             } catch (\Throwable $exception) {
                 $errorMessage = 'No se pudo leer el archivo seleccionado.';
             }
@@ -60,8 +62,59 @@ final class LogController extends AbstractController
             'lineOptions' => $lineOptions,
             'selectedLines' => $selectedLines,
             'logLines' => $logLines,
+            'logStats' => $logStats,
             'errorMessage' => $errorMessage,
         ]);
+    }
+
+    /** @return array<int, array{label:string,count:int,percent:int,class:string}> */
+    private function summarizeLogLevels(array $logLines): array
+    {
+        $levels = [
+            'error' => ['label' => 'Errores', 'count' => 0, 'class' => 'bg-rose-500'],
+            'warning' => ['label' => 'Warnings', 'count' => 0, 'class' => 'bg-amber-400'],
+            'info' => ['label' => 'Info', 'count' => 0, 'class' => 'bg-sky-400'],
+            'notice' => ['label' => 'Notices', 'count' => 0, 'class' => 'bg-emerald-400'],
+            'debug' => ['label' => 'Debug', 'count' => 0, 'class' => 'bg-slate-400'],
+        ];
+
+        foreach ($logLines as $line) {
+            $normalized = strtolower($line);
+
+            foreach ($levels as $key => &$level) {
+                if (str_contains($normalized, '"level_name":"' . $key . '"') || str_contains($normalized, ' ' . strtoupper($key) . ' ') || str_contains($normalized, '[' . strtoupper($key) . ']')) {
+                    ++$level['count'];
+                    break;
+                }
+            }
+            unset($level);
+        }
+
+        $total = array_sum(array_column($levels, 'count'));
+        $stats = [];
+
+        foreach ($levels as $level) {
+            $stats[] = [
+                'label' => $level['label'],
+                'count' => $level['count'],
+                'percent' => $total > 0 ? (int) round(($level['count'] / $total) * 100) : 0,
+                'class' => $level['class'],
+            ];
+        }
+
+        return $stats;
+    }
+
+    /** @return array<int, array{label:string,count:int,percent:int,class:string}> */
+    private function emptyLogStats(): array
+    {
+        return [
+            ['label' => 'Errores', 'count' => 0, 'percent' => 0, 'class' => 'bg-rose-500'],
+            ['label' => 'Warnings', 'count' => 0, 'percent' => 0, 'class' => 'bg-amber-400'],
+            ['label' => 'Info', 'count' => 0, 'percent' => 0, 'class' => 'bg-sky-400'],
+            ['label' => 'Notices', 'count' => 0, 'percent' => 0, 'class' => 'bg-emerald-400'],
+            ['label' => 'Debug', 'count' => 0, 'percent' => 0, 'class' => 'bg-slate-400'],
+        ];
     }
 
     private function resolveLogDirectory(): string
