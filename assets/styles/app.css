@@ -22,3 +22,50 @@
         color: var(--color-brand-ink);
     }
 }
+
+/* Restyle the ux-autocomplete (Tom Select) widget so it matches the app's input look. */
+.customer-autocomplete .ts-wrapper {
+    width: 100%;
+}
+
+.customer-autocomplete .ts-control {
+    display: flex;
+    width: 100%;
+    align-items: center;
+    border-radius: 1rem;
+    border: 1px solid #a7f3d0;
+    background-color: #fff;
+    padding: 0.75rem 0.875rem;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.customer-autocomplete .ts-wrapper.focus .ts-control {
+    border-color: #10b981;
+    box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.15);
+}
+
+.customer-autocomplete .ts-control > input {
+    color: #0f172a;
+}
+
+.customer-autocomplete .ts-dropdown {
+    margin-top: 0.5rem;
+    border-radius: 1rem;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 20px 45px rgba(15, 23, 42, 0.12);
+    overflow: hidden;
+}
+
+.customer-autocomplete .ts-dropdown .option,
+.customer-autocomplete .ts-dropdown .no-results {
+    padding: 0.5rem 0.875rem;
+    font-size: 0.875rem;
+    color: #334155;
+}
+
+.customer-autocomplete .ts-dropdown .active {
+    background-color: #ecfdf5;
+    color: #065f46;
+}
+

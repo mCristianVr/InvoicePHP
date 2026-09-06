@@ -37,7 +37,6 @@ final class InvoiceDraftCreationTest extends WebTestCase
     public function testGuestIsRedirectedFromInvoiceCreatePage(): void
     {
         $this->client->request('GET', '/invoices/new');
-
         self::assertResponseStatusCodeSame(302);
         self::assertResponseRedirects('/login');
     }
@@ -67,7 +66,7 @@ final class InvoiceDraftCreationTest extends WebTestCase
             'invoice_draft' => [
                 '_token' => $csrfToken,
                 'jobDate' => '2026-09-06',
-                'customerId' => (string) $customerB->id,
+                'customer' => (string) $customerB->id,
                 'createNewCustomer' => '0',
                 'lines' => [
                     [
@@ -98,17 +97,25 @@ final class InvoiceDraftCreationTest extends WebTestCase
 
         $this->client->loginUser($user);
         $crawler = $this->client->request('GET', '/invoices/new');
+        $csrfToken = (string) $crawler->filter('input[name="invoice_draft[_token]"]')->attr('value');
 
-        $form = $crawler->selectButton('Crear borrador')->form([
-            'invoice_draft[jobDate]' => '2026-09-06',
-            'invoice_draft[customerId]' => (string) $customer->id,
-            'invoice_draft[lines][0][description]' => 'Diseño web',
-            'invoice_draft[lines][0][quantity]' => '2',
-            'invoice_draft[lines][0][unitPrice]' => '250.00',
-            'invoice_draft[lines][0][taxRatePercent]' => '21.00',
+        // The customer field is populated via the ux-autocomplete AJAX endpoint at runtime,
+        // so it has no pre-rendered <option> for BrowserKit to select; submit raw POST data instead.
+        $this->client->request('POST', '/invoices/new', [
+            'invoice_draft' => [
+                '_token' => $csrfToken,
+                'jobDate' => '2026-09-06',
+                'customer' => (string) $customer->id,
+                'lines' => [
+                    [
+                        'description' => 'Diseño web',
+                        'quantity' => '2',
+                        'unitPrice' => '250.00',
+                        'taxRatePercent' => '21.00',
+                    ],
+                ],
+            ],
         ]);
-
-        $this->client->submit($form);
 
         self::assertResponseRedirects('/dashboard');
 
@@ -156,5 +163,42 @@ final class InvoiceDraftCreationTest extends WebTestCase
         self::assertNotNull($invoice->customer);
         self::assertSame('Cliente Inline', $invoice->customer->name);
         self::assertSame('A58818501', $invoice->customer->nifCif);
+    }
+
+    public function testCustomerAutocompleteEndpointOnlyReturnsOwnCustomers(): void
+    {
+        $userA = new User('autocomplete-a@example.com', 'password-not-used');
+        $userB = new User('autocomplete-b@example.com', 'password-not-used');
+
+        $customerA = new Customer($userA, 'Panaderia Solar', 'X1234567L');
+        $customerA->updateDetails('Panaderia Solar', 'X1234567L', 'Calle A 1', '28001', 'Madrid', 'Madrid', 'solar@example.com', '911111111');
+
+        $customerB = new Customer($userB, 'Panaderia Luna', 'A58818501');
+        $customerB->updateDetails('Panaderia Luna', 'A58818501', 'Calle B 7', '08001', 'Barcelona', 'Barcelona', 'luna@example.com', '900000000');
+
+        $this->entityManager->persist($userA);
+        $this->entityManager->persist($userB);
+        $this->entityManager->persist($customerA);
+        $this->entityManager->persist($customerB);
+        $this->entityManager->flush();
+
+        $this->client->loginUser($userA);
+
+        // Search by a term ("Panaderia") that matches both users' customers by name.
+        $this->client->request('GET', '/autocomplete/customer', ['query' => 'Panaderia']);
+
+        self::assertResponseIsSuccessful();
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        $labels = array_map(static fn (array $result): string => $result['text'], $payload['results']);
+
+        self::assertContains('Panaderia Solar (X1234567L)', $labels);
+        self::assertNotContains('Panaderia Luna (A58818501)', $labels);
+
+        // Searching by user B's customer id must not leak it to user A either.
+        $this->client->request('GET', '/autocomplete/customer', ['query' => (string) $customerB->id]);
+
+        self::assertResponseIsSuccessful();
+        $payload = json_decode((string) $this->client->getResponse()->getContent(), true, 512, JSON_THROW_ON_ERROR);
+        self::assertSame([], $payload['results']);
     }
 }

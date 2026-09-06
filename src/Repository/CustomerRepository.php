@@ -51,7 +51,8 @@ final class CustomerRepository extends ServiceEntityRepository
             ->getSingleScalarResult() > 0;
     }
 
-    private function createVisibleToActorQueryBuilder(User $actor): QueryBuilder
+    /** Public so form/autocomplete layers can reuse the same owner-scoping rule. */
+    public function createVisibleToActorQueryBuilder(User $actor): QueryBuilder
     {
         $qb = $this->createQueryBuilder('c');
 

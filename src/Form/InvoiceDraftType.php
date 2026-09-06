@@ -5,9 +5,8 @@ declare(strict_types=1);
 namespace App\Form;
 
 use App\Form\Model\InvoiceDraftData;
-use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
+use Symfony\Component\Form\Extension\Core\Type\CheckboxType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\DateType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -24,17 +23,8 @@ final class InvoiceDraftType extends AbstractType
                 'widget' => 'single_text',
                 'input' => 'datetime_immutable',
             ])
-            ->add('customerId', ChoiceType::class, [
+            ->add('customer', CustomerAutocompleteType::class, [
                 'label' => 'Cliente',
-                'choices' => $options['customer_choices'],
-                'choice_attr' => static function (mixed $choiceValue, string $choiceLabel) use ($options): array {
-                    $numericChoice = is_numeric($choiceValue) ? (int) $choiceValue : 0;
-
-                    return [
-                        'data-search' => strtolower((string) ($options['customer_search_index'][$numericChoice] ?? $choiceLabel)),
-                    ];
-                },
-                'placeholder' => 'Selecciona un cliente',
                 'required' => false,
             ])
             ->add('createNewCustomer', CheckboxType::class, [
@@ -65,11 +55,6 @@ final class InvoiceDraftType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => InvoiceDraftData::class,
-            'customer_choices' => [],
-            'customer_search_index' => [],
         ]);
-
-        $resolver->setAllowedTypes('customer_choices', 'array');
-        $resolver->setAllowedTypes('customer_search_index', 'array');
     }
 }

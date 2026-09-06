@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Form\Model;
 
+use App\Entity\Customer;
 use Symfony\Component\Validator\Constraints as Assert;
 
 final class InvoiceDraftData
@@ -11,7 +12,7 @@ final class InvoiceDraftData
     #[Assert\NotNull(message: 'La fecha del trabajo es obligatoria.')]
     public ?\DateTimeImmutable $jobDate = null;
 
-    public ?int $customerId = null;
+    public ?Customer $customer = null;
 
     public bool $createNewCustomer = false;
 

@@ -36,34 +36,10 @@ final class InvoiceController extends AbstractController
     ): Response {
         $actor = $this->currentUser();
         $invoiceDate = new \DateTimeImmutable('today');
-        $customers = $customerRepository->findAllVisibleTo($actor);
-
-        $choices = [];
-        $customerSearchIndex = [];
-        $customerOptions = [];
-        foreach ($customers as $customer) {
-            $label = sprintf('%s (%s)', $customer->name, $customer->nifCif);
-            $searchText = implode(' ', [
-                strtolower($customer->name),
-                strtolower($customer->nifCif),
-                strtolower($customer->email ?? ''),
-                strtolower($customer->city ?? ''),
-            ]);
-
-            $choices[$label] = (int) $customer->id;
-            $customerSearchIndex[(int) $customer->id] = $searchText;
-            $customerOptions[] = [
-                'id' => (int) $customer->id,
-                'label' => $label,
-                'search' => $searchText,
-            ];
-        }
+        $customersCount = count($customerRepository->findAllVisibleTo($actor));
 
         $data = new InvoiceDraftData();
-        $form = $this->createForm(InvoiceDraftType::class, $data, [
-            'customer_choices' => $choices,
-            'customer_search_index' => $customerSearchIndex,
-        ]);
+        $form = $this->createForm(InvoiceDraftType::class, $data);
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
@@ -71,7 +47,7 @@ final class InvoiceController extends AbstractController
             if (!$customer instanceof Customer) {
                 return $this->render('invoice/new.html.twig', [
                     'form' => $form,
-                    'customersCount' => count($customers),
+                    'customersCount' => $customersCount,
                 ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
             }
 
@@ -100,8 +76,7 @@ final class InvoiceController extends AbstractController
 
                 return $this->render('invoice/new.html.twig', [
                     'form' => $form,
-                    'customersCount' => count($customers),
-                    'customerOptions' => $customerOptions,
+                    'customersCount' => $customersCount,
                     'invoiceDate' => $invoiceDate,
                 ], new Response(status: Response::HTTP_UNPROCESSABLE_ENTITY));
             }
@@ -122,8 +97,7 @@ final class InvoiceController extends AbstractController
 
         return $this->render('invoice/new.html.twig', [
             'form' => $form,
-            'customersCount' => count($customers),
-            'customerOptions' => $customerOptions,
+            'customersCount' => $customersCount,
             'invoiceDate' => $invoiceDate,
         ], new Response(status: $status));
     }
@@ -157,15 +131,16 @@ final class InvoiceController extends AbstractController
             return $this->createInlineCustomerFromForm($form, $actor, $data, $customerRepository);
         }
 
-        if ($data->customerId === null || $data->customerId <= 0) {
-            $form->get('customerId')->addError(new FormError('Debes seleccionar un cliente o crear uno nuevo.'));
+        $customer = $data->customer;
+        if (!$customer instanceof Customer) {
+            $form->get('customer')->addError(new FormError('Debes seleccionar un cliente o crear uno nuevo.'));
 
             return null;
         }
 
-        $customer = $customerRepository->findOneVisibleTo($actor, (int) $data->customerId);
-        if (!$customer instanceof Customer) {
-            $form->get('customerId')->addError(new FormError('Cliente no valido para tu cuenta.'));
+        // Defense in depth: the autocomplete field's query_builder already scopes results by owner.
+        if (!in_array('ROLE_ADMIN', $actor->getRoles(), true) && $customer->owner->id !== $actor->id) {
+            $form->get('customer')->addError(new FormError('Cliente no valido para tu cuenta.'));
 
             return null;
         }
