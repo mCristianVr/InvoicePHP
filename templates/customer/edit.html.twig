@@ -1,0 +1,20 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Editar cliente{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
+    <div class="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.12em] text-teal-700">Clientes</p>
+            <h1 class="mt-1 text-3xl font-bold text-slate-900">Editar cliente</h1>
+            <p class="mt-1 text-sm text-slate-600">Actualiza la ficha de {{ customer.name }}.</p>
+        </div>
+        <a class="rounded-xl border border-slate-300 bg-white px-4 py-2 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" href="{{ path('app_customer_show', {'id': customer.id}) }}">Volver al detalle</a>
+    </div>
+
+    <div class="rounded-3xl border border-emerald-100 bg-white/90 p-6 shadow-[0_20px_60px_rgba(6,78,59,0.12)] sm:p-8">
+        {% include 'customer/_form.html.twig' with { form: form, submit_label: 'Guardar cambios' } %}
+    </div>
+</div>
+{% endblock %}

@@ -1,0 +1,57 @@
+{{ form_start(form, {'attr': {'class': 'space-y-5'}}) }}
+    <div>
+        {{ form_label(form.name, null, {'label_attr': {'class': 'mb-2 block text-sm font-semibold text-slate-700'}}) }}
+        {{ form_widget(form.name, {'attr': {'class': 'w-full rounded-2xl border border-emerald-100 bg-emerald-50/40 px-3.5 py-3.5 text-slate-900 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100', 'placeholder': 'Nombre del cliente o empresa'}}) }}
+        {{ form_errors(form.name, {'attr': {'class': 'mt-2 text-sm text-rose-700'}}) }}
+    </div>
+
+    <div>
+        {{ form_label(form.nifCif, null, {'label_attr': {'class': 'mb-2 block text-sm font-semibold text-slate-700'}}) }}
+        {{ form_widget(form.nifCif, {'attr': {'class': 'w-full rounded-2xl border border-emerald-100 bg-emerald-50/40 px-3.5 py-3.5 uppercase text-slate-900 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100', 'placeholder': '12345678Z, X1234567L, A58818501'}}) }}
+        {{ form_errors(form.nifCif, {'attr': {'class': 'mt-2 text-sm text-rose-700'}}) }}
+    </div>
+
+    <div>
+        {{ form_label(form.address, null, {'label_attr': {'class': 'mb-2 block text-sm font-semibold text-slate-700'}}) }}
+        {{ form_widget(form.address, {'attr': {'rows': 3, 'class': 'w-full rounded-2xl border border-emerald-100 bg-emerald-50/40 px-3.5 py-3 text-slate-900 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100', 'placeholder': 'Calle, numero, piso...'}}) }}
+        {{ form_errors(form.address, {'attr': {'class': 'mt-2 text-sm text-rose-700'}}) }}
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-3">
+        <div>
+            {{ form_label(form.postalCode, null, {'label_attr': {'class': 'mb-2 block text-sm font-semibold text-slate-700'}}) }}
+            {{ form_widget(form.postalCode, {'attr': {'class': 'w-full rounded-2xl border border-emerald-100 bg-emerald-50/40 px-3.5 py-3 text-slate-900 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100'}}) }}
+            {{ form_errors(form.postalCode, {'attr': {'class': 'mt-2 text-sm text-rose-700'}}) }}
+        </div>
+        <div>
+            {{ form_label(form.city, null, {'label_attr': {'class': 'mb-2 block text-sm font-semibold text-slate-700'}}) }}
+            {{ form_widget(form.city, {'attr': {'class': 'w-full rounded-2xl border border-emerald-100 bg-emerald-50/40 px-3.5 py-3 text-slate-900 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100'}}) }}
+            {{ form_errors(form.city, {'attr': {'class': 'mt-2 text-sm text-rose-700'}}) }}
+        </div>
+        <div>
+            {{ form_label(form.province, null, {'label_attr': {'class': 'mb-2 block text-sm font-semibold text-slate-700'}}) }}
+            {{ form_widget(form.province, {'attr': {'class': 'w-full rounded-2xl border border-emerald-100 bg-emerald-50/40 px-3.5 py-3 text-slate-900 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100'}}) }}
+            {{ form_errors(form.province, {'attr': {'class': 'mt-2 text-sm text-rose-700'}}) }}
+        </div>
+    </div>
+
+    <div class="grid gap-4 sm:grid-cols-2">
+        <div>
+            {{ form_label(form.email, null, {'label_attr': {'class': 'mb-2 block text-sm font-semibold text-slate-700'}}) }}
+            {{ form_widget(form.email, {'attr': {'class': 'w-full rounded-2xl border border-emerald-100 bg-emerald-50/40 px-3.5 py-3 text-slate-900 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100', 'placeholder': 'cliente@email.com'}}) }}
+            {{ form_errors(form.email, {'attr': {'class': 'mt-2 text-sm text-rose-700'}}) }}
+        </div>
+        <div>
+            {{ form_label(form.phone, null, {'label_attr': {'class': 'mb-2 block text-sm font-semibold text-slate-700'}}) }}
+            {{ form_widget(form.phone, {'attr': {'class': 'w-full rounded-2xl border border-emerald-100 bg-emerald-50/40 px-3.5 py-3 text-slate-900 shadow-sm outline-none transition duration-200 placeholder:text-slate-400 focus:border-emerald-500 focus:bg-white focus:ring-4 focus:ring-emerald-100', 'placeholder': '+34 ...'}}) }}
+            {{ form_errors(form.phone, {'attr': {'class': 'mt-2 text-sm text-rose-700'}}) }}
+        </div>
+    </div>
+
+    <div class="flex flex-wrap items-center gap-3 pt-2">
+        <button class="rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 px-4 py-3 font-semibold text-white shadow-[0_18px_35px_rgba(13,148,136,0.35)] transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_22px_40px_rgba(13,148,136,0.4)] focus:outline-none focus:ring-4 focus:ring-emerald-200" type="submit">
+            {{ submit_label|default('Guardar') }}
+        </button>
+        <a class="rounded-xl border border-slate-300 bg-white px-4 py-3 text-sm font-semibold text-slate-700 transition hover:bg-slate-50" href="{{ path('app_customer_index') }}">Cancelar</a>
+    </div>
+{{ form_end(form) }}

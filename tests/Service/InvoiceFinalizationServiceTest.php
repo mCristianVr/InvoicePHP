@@ -8,6 +8,7 @@ use App\Entity\Customer;
 use App\Entity\Invoice;
 use App\Entity\InvoiceItem;
 use App\Entity\InvoiceSeries;
+use App\Entity\User;
 use App\Service\InvoiceFinalizationService;
 use Doctrine\ORM\EntityManagerInterface;
 use PHPUnit\Framework\Attributes\CoversClass;
@@ -25,11 +26,15 @@ final class InvoiceFinalizationServiceTest extends KernelTestCase
         $this->entityManager = static::getContainer()->get(EntityManagerInterface::class);
 
         $this->entityManager->beginTransaction();
-        $this->entityManager->getConnection()->executeStatement('DELETE FROM invoice_status_transition');
-        $this->entityManager->getConnection()->executeStatement('DELETE FROM invoice_item');
-        $this->entityManager->getConnection()->executeStatement('DELETE FROM invoice');
-        $this->entityManager->getConnection()->executeStatement('DELETE FROM invoice_series');
-        $this->entityManager->getConnection()->executeStatement('DELETE FROM customer');
+        $connection = $this->entityManager->getConnection();
+        $schemaManager = $connection->createSchemaManager();
+        $tables = array_map('strtolower', $schemaManager->listTableNames());
+
+        foreach (['invoice_status_transition', 'invoice_item', 'invoice', 'invoice_series', 'customer', 'user_account'] as $table) {
+            if (in_array($table, $tables, true)) {
+                $connection->executeStatement('DELETE FROM ' . $table);
+            }
+        }
     }
 
     protected function tearDown(): void
@@ -47,9 +52,12 @@ final class InvoiceFinalizationServiceTest extends KernelTestCase
             self::markTestSkipped('PostgreSQL support is required for concurrent finalization tests.');
         }
 
-        $customer = new Customer('Acme SL', 'A58818501', 'Calle Mayor 1, Madrid', 'info@example.com', '912345678');
+        $owner = new User('owner@example.com', 'not_used_in_this_test');
+        $customer = new Customer($owner, 'Acme SL', 'A58818501');
+        $customer->updateDetails('Acme SL', 'A58818501', 'Calle Mayor 1, Madrid', '28013', 'Madrid', 'Madrid', 'info@example.com', '912345678');
         $series = new InvoiceSeries('FAC', 2026, 1);
 
+        $this->entityManager->persist($owner);
         $this->entityManager->persist($customer);
         $this->entityManager->persist($series);
         $this->entityManager->flush();

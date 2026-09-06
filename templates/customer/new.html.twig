@@ -1,0 +1,17 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Nuevo cliente{% endblock %}
+
+{% block body %}
+<div class="mx-auto max-w-4xl p-4 sm:p-6 lg:p-8">
+    <div class="mb-6">
+        <p class="text-xs font-semibold uppercase tracking-[0.12em] text-teal-700">Clientes</p>
+        <h1 class="mt-1 text-3xl font-bold text-slate-900">Alta de cliente</h1>
+        <p class="mt-1 text-sm text-slate-600">Introduce los datos fiscales necesarios para emitir facturas.</p>
+    </div>
+
+    <div class="rounded-3xl border border-emerald-100 bg-white/90 p-6 shadow-[0_20px_60px_rgba(6,78,59,0.12)] sm:p-8">
+        {% include 'customer/_form.html.twig' with { form: form, submit_label: 'Crear cliente' } %}
+    </div>
+</div>
+{% endblock %}
