@@ -5,7 +5,10 @@ declare(strict_types=1);
 namespace App\Repository;
 
 use App\Entity\Invoice;
+use App\Entity\User;
+use App\Enum\InvoiceStatus;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
+use Doctrine\ORM\QueryBuilder;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -16,6 +19,22 @@ final class InvoiceRepository extends ServiceEntityRepository
     public function __construct(ManagerRegistry $registry)
     {
         parent::__construct($registry, Invoice::class);
+    }
+
+    /** @return list<Invoice> */
+    public function findVisibleForDashboard(User $actor, ?string $statusFilter = null): array
+    {
+        $qb = $this->createVisibleToActorQueryBuilder($actor)
+            ->orderBy('i.issuedAt', 'DESC')
+            ->addOrderBy('i.id', 'DESC');
+
+        if ($statusFilter !== null && $statusFilter !== 'ALL') {
+            $qb
+                ->andWhere('i.status = :status')
+                ->setParameter('status', $statusFilter);
+        }
+
+        return $qb->getQuery()->getResult();
     }
 
     public function findLastFinalizedHash(): ?string
@@ -34,9 +53,9 @@ final class InvoiceRepository extends ServiceEntityRepository
     }
 
     /** @return array{draft_total:int,sent_total:int,paid_total:int} */
-    public function dashboardTotals(): array
+    public function dashboardTotals(User $actor): array
     {
-        $rows = $this->createQueryBuilder('i')
+        $rows = $this->createVisibleToActorQueryBuilder($actor)
             ->select('i.status AS status', 'SUM(i.grandTotalCents) AS total')
             ->groupBy('i.status')
             ->getQuery()
@@ -49,7 +68,11 @@ final class InvoiceRepository extends ServiceEntityRepository
         ];
 
         foreach ($rows as $row) {
-            $status = $row['status'];
+            $status = $this->normalizeStatusKey($row['status'] ?? null);
+            if ($status === null) {
+                continue;
+            }
+
             if (isset($totals[$status])) {
                 $totals[$status] = (int) $row['total'];
             }
@@ -63,9 +86,9 @@ final class InvoiceRepository extends ServiceEntityRepository
     }
 
     /** @return array{ALL:int,DRAFT:int,SENT:int,PAID:int,OVERDUE:int,REJECTED:int} */
-    public function dashboardStatusCounts(): array
+    public function dashboardStatusCounts(User $actor): array
     {
-        $rows = $this->createQueryBuilder('i')
+        $rows = $this->createVisibleToActorQueryBuilder($actor)
             ->select('i.status AS status', 'COUNT(i.id) AS total')
             ->groupBy('i.status')
             ->getQuery()
@@ -80,7 +103,11 @@ final class InvoiceRepository extends ServiceEntityRepository
         ];
 
         foreach ($rows as $row) {
-            $status = $row['status'];
+            $status = $this->normalizeStatusKey($row['status'] ?? null);
+            if ($status === null) {
+                continue;
+            }
+
             if (isset($counts[$status])) {
                 $counts[$status] = (int) $row['total'];
             }
@@ -94,5 +121,42 @@ final class InvoiceRepository extends ServiceEntityRepository
             'OVERDUE' => $counts['OVERDUE'],
             'REJECTED' => $counts['REJECTED'],
         ];
+    }
+
+    public function invoiceNumberExists(string $invoiceNumber): bool
+    {
+        return $this->createQueryBuilder('i')
+            ->select('COUNT(i.id)')
+            ->andWhere('i.invoiceNumber = :invoiceNumber')
+            ->setParameter('invoiceNumber', $invoiceNumber)
+            ->getQuery()
+            ->getSingleScalarResult() > 0;
+    }
+
+    private function createVisibleToActorQueryBuilder(User $actor): QueryBuilder
+    {
+        $qb = $this->createQueryBuilder('i')
+            ->leftJoin('i.customer', 'c');
+
+        if (in_array('ROLE_ADMIN', $actor->getRoles(), true)) {
+            return $qb;
+        }
+
+        return $qb
+            ->andWhere('c.owner = :owner')
+            ->setParameter('owner', $actor);
+    }
+
+    private function normalizeStatusKey(mixed $status): ?string
+    {
+        if ($status instanceof InvoiceStatus) {
+            return $status->value;
+        }
+
+        if (is_string($status) && $status !== '') {
+            return strtoupper($status);
+        }
+
+        return null;
     }
 }

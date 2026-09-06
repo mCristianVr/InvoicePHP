@@ -39,6 +39,18 @@ final class CustomerRepository extends ServiceEntityRepository
             ->getOneOrNullResult();
     }
 
+    public function ownerHasNifCif(User $owner, string $nifCif): bool
+    {
+        return (int) $this->createQueryBuilder('c')
+            ->select('COUNT(c.id)')
+            ->andWhere('c.owner = :owner')
+            ->andWhere('c.nifCif = :nifCif')
+            ->setParameter('owner', $owner)
+            ->setParameter('nifCif', strtoupper(trim($nifCif)))
+            ->getQuery()
+            ->getSingleScalarResult() > 0;
+    }
+
     private function createVisibleToActorQueryBuilder(User $actor): QueryBuilder
     {
         $qb = $this->createQueryBuilder('c');

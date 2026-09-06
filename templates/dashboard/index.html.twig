@@ -21,10 +21,13 @@
 } %}
 
 <div class="mx-auto max-w-7xl p-4 sm:p-6 lg:p-8">
-    <div class="mb-8">
-        <p class="text-xs font-semibold uppercase tracking-[0.12em] text-teal-700">Panel de facturas</p>
-        <h1 class="mt-1 text-3xl font-bold text-slate-900">Bienvenido, {{ app.user.userIdentifier }}</h1>
-        <p class="mt-1 text-sm text-slate-600">Consulta importes, revisa estados y prioriza la siguiente accion.</p>
+    <div class="mb-8 flex flex-wrap items-end justify-between gap-3">
+        <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.12em] text-teal-700">Panel de facturas</p>
+            <h1 class="mt-1 text-3xl font-bold text-slate-900">Bienvenido, {{ app.user.userIdentifier }}</h1>
+            <p class="mt-1 text-sm text-slate-600">Consulta importes, revisa estados y prioriza la siguiente accion.</p>
+        </div>
+        <a class="inline-flex rounded-2xl bg-gradient-to-r from-emerald-600 via-teal-600 to-cyan-600 px-4 py-3 text-sm font-semibold text-white shadow-[0_14px_30px_rgba(13,148,136,0.35)] transition hover:-translate-y-0.5 hover:shadow-[0_18px_36px_rgba(13,148,136,0.4)]" href="{{ path('app_invoice_new') }}">Generar factura</a>
     </div>
 
     <div class="mb-8 grid gap-4 md:grid-cols-3">

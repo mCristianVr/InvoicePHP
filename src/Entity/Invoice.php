@@ -38,6 +38,9 @@ final class Invoice
     #[ORM\Column(name: 'issued_at', type: Types::DATE_IMMUTABLE)]
     public private(set) \DateTimeImmutable $issuedAt;
 
+    #[ORM\Column(name: 'job_date', type: Types::DATE_IMMUTABLE, nullable: true)]
+    public private(set) ?\DateTimeImmutable $jobDate = null;
+
     #[ORM\Column(type: Types::STRING, enumType: InvoiceStatus::class, length: 16)]
     public private(set) InvoiceStatus $status = InvoiceStatus::DRAFT;
 
@@ -84,10 +87,11 @@ final class Invoice
     #[ORM\OrderBy(['changedAt' => 'ASC'])]
     public private(set) Collection $statusTransitions;
 
-    public function __construct(string $invoiceNumber, \DateTimeImmutable $issuedAt, string $currency = 'EUR', ?Customer $customer = null, ?InvoiceSeries $invoiceSeries = null)
+    public function __construct(string $invoiceNumber, \DateTimeImmutable $issuedAt, string $currency = 'EUR', ?Customer $customer = null, ?InvoiceSeries $invoiceSeries = null, ?\DateTimeImmutable $jobDate = null)
     {
         $this->invoiceNumber = trim($invoiceNumber);
         $this->issuedAt = $issuedAt;
+        $this->jobDate = $jobDate ?? $issuedAt;
         $this->currency = strtoupper(trim($currency));
         $this->createdAt = new \DateTimeImmutable();
         $this->updatedAt = $this->createdAt;
@@ -138,6 +142,13 @@ final class Invoice
         if ($issuedAt !== null) {
             $this->issuedAt = $issuedAt;
         }
+        $this->touch();
+    }
+
+    public function assignJobDate(\DateTimeImmutable $jobDate): void
+    {
+        $this->assertFinanciallyMutable();
+        $this->jobDate = $jobDate;
         $this->touch();
     }
 
